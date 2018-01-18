@@ -1,4 +1,4 @@
-# Get-WbsURLCategory.ps1
+# WebsensePing
 
 Folder **"WebsensePing"** should contain the following files:
 * btrow42.dll
