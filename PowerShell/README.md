@@ -7,3 +7,6 @@ Use it if you can't use curl in Windows
 * Get-WbsURLCategory.ps1  
 Wrapper to WebsensePing.exe  
 With some cool features (i.e. extract groups from AD ( by mask), parse and reformat output)
+
+* Get-WebsensePing.ps1  
+Script for collect WebsensePing files from TRITON Web Security installation folder (default: "C:\Program Files\Websense\Web Security\bin")
