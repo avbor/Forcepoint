@@ -17,3 +17,6 @@ Folder **"WebsensePing"** should contain the following files:
 * WFCCrypto.dll
 * WFCNetwork.dll
 * WFCRoot.dll
+
+
+By default, the files are located here **"C:\Program Files\Websense\Web Security\bin"**
