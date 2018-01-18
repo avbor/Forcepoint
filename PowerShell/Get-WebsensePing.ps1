@@ -9,10 +9,6 @@ if (!(Test-Path $Source)) {
     Exit
 }
 
-if (!(Test-Path $Destination)) {
-    New-Item -ItemType Directory -Path $Destination | Out-Null
-}
-
 $WbsPngFiles = @(
     "btrow42.dll",
     "btuc42.dll",
@@ -51,5 +47,7 @@ if ($srcChk["NotFound"]) {
     Write-Host $srcChk["NotFound"]
 }
 elseif ($srcChk["Found"]) {
+    if (!(Test-Path $Destination)) {New-Item -ItemType Directory -Path $Destination | Out-Null}
     $srcChk["Found"] | ForEach-Object {Copy-Item -Path $_ -Destination $Destination -Force}
+    Write-Host -ForegroundColor Green "Необходимые файлы скопированы в папку" (Get-Item $Destination).FullName
 }
