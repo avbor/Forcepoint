@@ -1,2 +1,2 @@
-# Forcepoint
-Forcepoint Admin Stuff
+# Forcepoint (Websense)
+Some stuff (scripts, zabbix templates etc...) for better life with Forcepoint product =)
