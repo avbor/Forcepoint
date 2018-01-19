@@ -46,31 +46,31 @@ function PrintHFInfo ($fix) {
 Write-Host "`nAvailable hotfixes for version $ver"
 
 if ($App) {
-    Write-Host -ForegroundColor Yellow "`nFor Appliance:`n"
+    Write-Host -ForegroundColor Yellow "`nFor Appliance ["$App.Count"]:`n" -Separator ""
     foreach ($hf in $App) {
         PrintHFInfo -fix $hf
     }
 }
 if ($Web) {
-    Write-Host -ForegroundColor Yellow "`nFor Filtering Services:`n"
+    Write-Host -ForegroundColor Yellow "`nFor Filtering Services ["$Web.Count"]:`n" -Separator ""
     foreach ($hf in $Web) {
         PrintHFInfo -fix $hf
     }
 }
 if ($Proxy) {
-    Write-Host -ForegroundColor Yellow "`nFor Content Gateway:`n"
+    Write-Host -ForegroundColor Yellow "`nFor Content Gateway ["$Proxy.Count"]:`n" -Separator ""
     foreach ($hf in $Proxy) {
         PrintHFInfo -fix $hf
     }
 }
 if ($Email) {
-    Write-Host -ForegroundColor Yellow "`nFor Email Security Gateway:`n"
+    Write-Host -ForegroundColor Yellow "`nFor Email Security Gateway ["$Email.Count"]:`n" -Separator ""
     foreach ($hf in $Email) {
         PrintHFInfo -fix $hf
     }
 }
 if ($Other) {
-    Write-Host -ForegroundColor Yellow "`nFor Other components:`n"
+    Write-Host -ForegroundColor Yellow "`nFor Other components ["$Other.Count"]:`n" -Separator ""
     foreach ($hf in $Other) {
         PrintHFInfo -fix $hf
     }
