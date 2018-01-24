@@ -7,7 +7,9 @@ Help on Russian only.
 
 * **Get-WbsURLCategory.ps1**  
 Wrapper to WebsensePing.exe.  
-With some cool features (i.e. extract groups from AD ( by mask), parse and reformat output).  
+With some cool features, also parse and reformat output.  
+Can show you - AD groups of user (with custom filter), filtering policies and filtering result for request (user - user ip - url)  
+Additionally, script can parse pac file and return proxy list for request (useful for big installations with many proxies).
 Help and many message on Russian only.
 
 * **Get-WebsensePing.ps1**  
