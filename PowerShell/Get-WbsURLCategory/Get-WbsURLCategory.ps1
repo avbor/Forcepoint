@@ -23,6 +23,10 @@
     $adGrpMasks - Список фильтров для поиска AD групп, представлен в формате "комментарий", "фильтр",
     комментарий используется в качестве загаловка для блока групп, найденых по соответсвующему фильтру в выводе скрипта.
     $pcPref - Список префиксов имен ПК со значениями таймаутов для них (например, nsk* - 60 сек), переопределяют значение $defPolTimeout
+    Используется для автоматического увеличения таймаута на запрос Policy Server'а для ПК в определенном регионе.
+    $pacURL - URL PAC (или wpad) файла. Если этот параметр задан и скрипт запущен с параметром -userip -
+    будет выведен список прокси-серверов для этого запроса, полученный в результате работы PAC-файла, в порядке перебора их клиентом (1-2-3...).
+
 
 
 Запуск без параметров вернет номер версии скрипта.
@@ -58,13 +62,14 @@ Get-WbsURLCategory.ps1 -url http://ya.ru -server 10.1.0.100
 
 .NOTES
 File Name       : Get-WbsURLCategory.ps1
-Prerequisite    : PowerShell V2, WebsensePing.exe, 64bit OS, ActiveDirectory PS module
+Prerequisite    : PowerShell V2, WebsensePing.exe, pactester.exe, 64bit OS, ActiveDirectory PS module
 Author          : Alexander V Borisov
-Copyright       : 2017/B&N Bank
+Copyright       : 2018/B&N Bank
 
 .LINK
 https://www.binbank.ru
 https://www.forcepoint.com/
+http://findproxyforurl.com/
 #>
 Param (
     [Parameter(Position=0, Mandatory = $false)][string]$url,
@@ -83,17 +88,18 @@ $modeUsr = "27"
 $modeUrl = "25"
 $allowedADDomains = @("contoso.com")
 $adGrpMasks = @(
-    @("Группы доступа пользователя - Forcepoint","*.Access.ProxyWs.*"),
-    @("Группы доступа пользователя - TMG","*.Access.Proxy.*")
+    @("Группы доступа пользователя - Forcepoint","*.InternetAccess.Forcepoint.*"),
+    @("Группы доступа пользователя - TMG","*.InternetAccess.TMG.*")
 )
 $pcPref = @{
     "nsk"="60"
 }
+$pacURL = "http://wbs-pac.corp.icba.biz/proxy.pac"
 
 # ------ Please do not change anything below this line ------ #
 # ------ Пожалуйста, не меняйте ничего ниже этой линии ------ #
 
-$ver = "20171227.1"
+$ver = "20180124.3"
 
 $curDir = $MyInvocation.MyCommand.Definition | Split-Path -Parent
 $pathWbsPing = ($curDir + "\WebsensePing\WebsensePing.exe")
@@ -107,6 +113,12 @@ if (!(Get-Item $pathWbsPing -ErrorAction SilentlyContinue)) {
 }
 Try {&($pathWbsPing) | Out-Null}
 Catch {Write-Host -ForegroundColor Red $_.Exception.Message; Exit}
+
+$pathPacTester = ($curDir + "\PacTester\pactester.exe")
+if (($pacURL -like "http*") -and !(Get-Item $pathPacTester -ErrorAction SilentlyContinue)) {
+    Write-Host -ForegroundColor Red "pactester.exe не найден!"
+    Exit
+}
 
 $curPcPref = ($env:computername).Substring(0,3).ToLower()
 if ($pcPref[$curPcPref]) {$defPolTimeout = $pcPref[$curPcPref]}
@@ -125,6 +137,21 @@ function Test-UPN ($upn) {
     if ($upn.Split("@").Count -ne 2) {Write-Output $false; return}
     elseif ($allowedADDomains.Contains($upn.Split("@")[1].ToLower()) -eq $false) {Write-Output $false; return}
     else {Write-Output $true}
+}
+
+function GetProxyByPac ($cIP, $rURL, $pURL, $tstPath, $rndPath) {
+    if ($rURL -notlike "http*") {$rURL = ("http://" + $rURL)}
+    $rnd = Get-Random
+    New-Item -ItemType File -Name ("Pac" + $rnd) -Path $rndPath -Value (Invoke-RestMethod -Method Get -Uri $pURL) | Out-Null
+    $tResult = &($tstPath) -p ($rndPath + "\Pac" + $rnd) -c $cIP -u $rURL 2>&1
+    Remove-Item -Path ($rndPath + "\Pac" + $rnd) -Force
+    if ($tResult -like "PROXY *") {
+        $tResult = $tResult.Split(";").Trim().Trim("PROXY").Trim()
+    }
+    else {
+        $tResult = ""
+    }
+    Write-Output $tResult
 }
 
 if (!$url) {
@@ -168,6 +195,7 @@ if ($user -or $userip) {
         if ($userip) {
             Try {$RequestResult = &($pathWbsPing) -s $server -m  $modeUsr -url $url -uip $userip -user ("default://" + $adDomain + "\" + $adUser.SamAccountName) -t $polTimeout}
             Catch {Write-Host -ForegroundColor Red $_.Exception.Message; Exit}
+            if ($pacURL -like "http*") {$uProxy = GetProxyByPac -cIP $userip -rURL $url -pURL $pacURL -tstPath $pathPacTester -rndPath $curDir}
         }
         else {
             Try {$RequestResult = &($pathWbsPing) -s $server -m  $modeUsr -url $url -user ("default://" + $adDomain + "\" + $adUser.SamAccountName) -t $polTimeout}
@@ -180,6 +208,7 @@ if ($user -or $userip) {
         Catch {Write-Host -ForegroundColor Red $_.Exception.Message; Exit}
         $adUserName = "-"
         $adUserUPN = "-"
+        if ($pacURL -like "http*") {$uProxy = GetProxyByPac -cIP $userip -rURL $url -pURL $pacURL -tstPath $pathPacTester -rndPath $curDir}
     }
     Try {$urlResp = ($RequestResult | Select-String -Pattern "URL = " -SimpleMatch).ToString().Split("=")[1].Trim()}
     Catch {Write-Host -ForegroundColor Red "Ошибка в разборе ответа WebsensePing (URL)"}
@@ -221,6 +250,11 @@ if ($user -or $userip) {
     if ($wbsPol.Count -ge 1) {
         Write-Host "Политики Forcepoint, примененные к этому запросу:"
         $wbsPol | ForEach-Object {Write-Host "`t"$_}
+        Write-Host ""
+    }
+    if ($uProxy) {
+        Write-Host "Результат выполнения PAC-файла для этого запроса (IP - URL):"
+        $uProxy | ForEach-Object {$count=1}{Write-Host "`t [$count]"$_; $count++}
         Write-Host ""
     }
     Write-Host -ForegroundColor $color $outputResult
