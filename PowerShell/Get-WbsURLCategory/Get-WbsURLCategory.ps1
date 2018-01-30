@@ -145,7 +145,7 @@ function GetProxyByPac ($cIP, $rURL, $pURL, $tstPath, $rndPath) {
     New-Item -ItemType File -Name ("Pac" + $rnd) -Path $rndPath -Value (Invoke-RestMethod -Method Get -Uri $pURL) | Out-Null
     $tResult = &($tstPath) -p ($rndPath + "\Pac" + $rnd) -c $cIP -u $rURL 2>&1
     Remove-Item -Path ($rndPath + "\Pac" + $rnd) -Force
-    if ($tResult -like "PROXY *") {
+    if (($tResult -like "PROXY *") -or ($tResult -eq "DIRECT")) {
         $tResult = $tResult.Split(";").Trim().Trim("PROXY").Trim()
     }
     else {
