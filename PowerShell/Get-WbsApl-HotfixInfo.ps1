@@ -1,7 +1,8 @@
 ﻿# Get-WbsApl-HotfixInfo.ps1
 
 Param (
-    [Parameter(Position=0, Mandatory = $false)][string]$Proxy
+    [Parameter(Position=0, Mandatory = $false)][string]$Version,
+    [Parameter(Position=1, Mandatory = $false)][string]$Proxy
 )
 
 $baseUri = "http://appliancehotfix.websense.com/download/hotfixes/index.json"
@@ -25,16 +26,21 @@ $Wcg = @()
 $Email = @()
 $Other = @()
 
-Write-Host "`nPlease, choise Forcepoint solution version:`n"
-$aVers | ForEach-Object {$count=1}{
-    if ($aVers.Count -eq $count) {Write-Host -ForegroundColor Yellow "[$count] - $_`n"}
-    else {Write-Host -ForegroundColor White "[$count] - $_"}
-    $count++
+if (!$Version) {
+    Write-Host "`nPlease, choise Forcepoint solution version:`n"
+    $aVers | ForEach-Object {$count=1}{
+        if ($aVers.Count -eq $count) {Write-Host -ForegroundColor Yellow "[$count] - $_`n"}
+        else {Write-Host -ForegroundColor White "[$count] - $_"}
+        $count++
+    }
+    $lastVer = $aVers.Count
+    $userChoice = Read-Host "Default [$lastVer]"
+    if (!$userChoice) {$ver = $aVers[$lastVer-1]}
+    else {$ver = $aVers[$userChoice-1]}
 }
-$lastVer = $aVers.Count
-$userChoice = Read-Host "Default [$lastVer]"
-if (!$userChoice) {$ver = $aVers[$lastVer-1]}
-else {$ver = $aVers[$userChoice-1]}
+else {
+    $ver = $Version
+}
 
 foreach ($uri in $allUri.$ver) {
     if ($uri) {
