@@ -99,7 +99,7 @@ $pacURL = "http://wbs-pac.corp.icba.biz/proxy.pac"
 # ------ Please do not change anything below this line ------ #
 # ------ Пожалуйста, не меняйте ничего ниже этой линии ------ #
 
-$ver = "20180124.3"
+$ver = "20180220.2"
 
 $curDir = $MyInvocation.MyCommand.Definition | Split-Path -Parent
 $pathWbsPing = ($curDir + "\WebsensePing\WebsensePing.exe")
