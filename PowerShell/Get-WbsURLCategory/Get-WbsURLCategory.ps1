@@ -140,7 +140,7 @@ function Test-UPN ($upn) {
 }
 
 function GetProxyByPac ($cIP, $rURL, $pURL, $tstPath, $rndPath) {
-    if ($rURL -notlike "http*") {$rURL = ("http://" + $rURL)}
+    if ($rURL -notmatch "^https?:\/\/.*|^ftp:\/\/.*") {$rURL = ("http://" + $rURL)}
     $rnd = Get-Random
     New-Item -ItemType File -Name ("Pac" + $rnd) -Path $rndPath -Value (Invoke-RestMethod -Method Get -Uri $pURL) | Out-Null
     $tResult = &($tstPath) -p ($rndPath + "\Pac" + $rnd) -c $cIP -u $rURL 2>&1
