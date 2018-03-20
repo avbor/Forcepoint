@@ -114,5 +114,5 @@ elseif ($GetUserGroupIpPrecedence) {
 else {
     if (!$method) {$method = Read-Host "Method"}
     if (!$url) {$url = Read-Host "URL"}
-    Write-Output (makeRequest -fUser $user -fPass $pass -fMethod $method -fUrl $url) | Format-List
+    Write-Output (makeRequest -fUser $user -fPass $pass -fMethod $method -fUrl $url)
 }
