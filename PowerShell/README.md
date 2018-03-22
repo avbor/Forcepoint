@@ -5,6 +5,9 @@ i.e. https://support.forcepoint.com/KBArticle?id=configure-filtering-service-via
 Use it if you can't use curl in Windows.  
 Help on Russian only.
 
+* **Scan-WbsApl-for-AvailHotfix.ps1**  
+Scanning appliences for available hotfixes
+
 * **Get-WbsURLCategory.ps1**  
 Wrapper to WebsensePing.exe.  
 With some cool features, also parse and reformat output.  
